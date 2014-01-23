@@ -1,6 +1,6 @@
 import spacebrew.*;
 
-String server="localhost";// "sandbox.spacebrew.cc";
+String server= "sandbox.spacebrew.cc";
 String name="P5 Custom Example - Objects";
 String description ="";
 
