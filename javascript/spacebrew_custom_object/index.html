@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    <title>Spacebrew Point (Custom JSON Example)</title>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/reset.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" src="js/jq.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+    <script type="text/javascript">
+
+		$(window).on("load", setup);
+	      
+		// Spacebrew Object
+		var sb
+			, app_name = "custom object example"
+			;
+
+		/**
+	     * setup Configure spacebrew connection and adds the mousedown listener.
+	     */
+		function setup (){
+			var random_id = "0000" + Math.floor(Math.random() * 10000);
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+			// create spacebrew client object
+			sb = new Spacebrew.Client();
+
+			// set the base description
+			sb.name(app_name);
+			sb.description("This spacebrew example sends and receives custom messages.");
+
+			// configure the publication and subscription feeds
+			sb.addPublish( "point", "point2d", {x:0,y:0} );
+			sb.addSubscribe( "point", "point2d" );
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onCustomMessage = onCustomMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+
+			// listen to the mouse 
+			$("body").bind('mousemove', onMouseMove)
+		}	
+
+		/**
+		 * Function that is called when Spacebrew connection is established
+		 */
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html( message );
+		}
+
+		/**
+	     * onButtonPress Function that is called whenever the button is pressed.  
+	     * @param  {Event object} evt Holds information about the button press event
+	     */
+		function onMouseMove (evt){
+			//console.log(evt);
+			var mouse = {x:evt.clientX, y:evt.clientY};
+			sb.send("point", "point2d", mouse);  
+			$("#localPoint").css("left", evt.clientX +"px");
+			$("#localPoint").css("top", evt.clientY +"px");    
+		}
+
+		/**
+		 * onCustomMessage Function that is called whenever new spacebrew custom messages are received.
+		 *          It accepts three parameters:
+		 * @param  {String} name    Holds name of the subscription feed channel
+		 * @param  {String} value 	Holds value received from the subscription feed
+		 * @param  {String} type 	Holds the custom message type
+		 */
+		function onCustomMessage( name, value, type ){
+			if (type == "point2d") {
+				value = JSON.parse(value);
+				$("#msg_received").text(value); // display the sent message in the browser     
+				$("#remotePoint").css("left", value.x +"px");    
+				$("#remotePoint").css("top", value.y +"px");    
+			}
+		}
+
+	</script>
+	</head>
+
+	<body>
+		<h1>
+			Remote point: <span id="msg_received"/>
+		</h1>
+
+		</br></br>
+		<div id="name">Trying to connect</div>
+		<div id="localPoint" class="point"></div>
+		<div id="remotePoint" class="point"></div>
+
+	</body>
+
+</html>
